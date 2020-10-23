@@ -3,7 +3,7 @@ from datetime import datetime
 
 import click
 
-from CalendarApiAdapter import CalendarApiAdapter
+from .CalendarApiAdapter import CalendarApiAdapter
 
 
 @click.group()
