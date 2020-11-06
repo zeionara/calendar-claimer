@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import click
 
@@ -20,7 +20,13 @@ def main():
 @click.argument('source', type=str)
 @click.option('--start-now', '-sn', is_flag=True)
 @click.option('--end-now', '-en', is_flag=True)
-def add_event(title: str, description: str, name: str, email: str, url: str, source: str, start_now: bool, end_now: bool):
+@click.option('--offset', '-o', type=int, default=None)
+def add_event(title: str, description: str, name: str, email: str, url: str, source: str, start_now: bool, end_now: bool, offset: int = None):
+    assert not (offset is not None and start_now and end_now)
+    day = datetime.today()
+    if offset is not None:
+        day += timedelta(days=offset)
+
     adapter = CalendarApiAdapter(creds_path=os.environ['GOOGLE_CALENDAR_API_CREDS_PATH'])
 
     event = {
@@ -28,11 +34,11 @@ def add_event(title: str, description: str, name: str, email: str, url: str, sou
         'location': 'Saint-Petersburg, Kronverkskiy Prospekt, 49',
         'description': description,
         'start': {
-            'dateTime': (datetime.now() if start_now else datetime.combine(datetime.today(), datetime.min.time())).isoformat(),
+            'dateTime': (datetime.now() if start_now else datetime.combine(day, datetime.min.time())).isoformat(),
             'timeZone': 'Europe/Moscow',
         },
         'end': {
-            'dateTime': (datetime.now() if end_now else datetime.combine(datetime.today(), datetime.max.time())).isoformat(),
+            'dateTime': (datetime.now() if end_now else datetime.combine(day, datetime.max.time())).isoformat(),
             'timeZone': 'Europe/Moscow',
         },
         'attendees': [
@@ -50,7 +56,8 @@ def add_event(title: str, description: str, name: str, email: str, url: str, sou
             'useDefault': False
         }
     }
-    event = adapter.service.events().insert(calendarId=os.environ['CALENDAR_ID'], body=event).execute()
+
+    adapter.service.events().insert(calendarId=os.environ['CALENDAR_ID'], body=event).execute()
 
 
 if __name__ == "__main__":
