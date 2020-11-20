@@ -1,5 +1,6 @@
 import os
 import pickle
+from datetime import datetime
 
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -29,3 +30,34 @@ class CalendarApiAdapter:
                 pickle.dump(creds, token)
 
         self.service = build('calendar', 'v3', credentials=creds)
+
+    def add_event(self, title: str, description: str, email: str, name: str, url: str, source: str, start_now: bool = False, end_now: bool = False, date=datetime.now()):
+        event = {
+            'summary': title,
+            'location': 'Saint-Petersburg, Kronverkskiy Prospekt, 49',
+            'description': description,
+            'start': {
+                'dateTime': (date if start_now else datetime.combine(date, datetime.min.time())).isoformat(),
+                'timeZone': 'Europe/Moscow',
+            },
+            'end': {
+                'dateTime': (date if end_now else datetime.combine(date, datetime.max.time())).isoformat(),
+                'timeZone': 'Europe/Moscow',
+            },
+            'attendees': [
+                {
+                    'email': email,
+                    'responseStatus': 'accepted',
+                    'displayName': name
+                }
+            ],
+            'source': {
+                'url': url,
+                'title': source
+            },
+            'reminders': {
+                'useDefault': False
+            }
+        }
+
+        self.service.events().insert(calendarId=os.environ['CALENDAR_ID'], body=event).execute()
