@@ -10,13 +10,13 @@ git clone https://github.com/zeionara/calendar-claimer.git /home/$USER/calendar-
 
 2. Install dependencies
 
-```
+```sh
 pip install click google-api-python-client google-auth-oauthlib
 ```
 
 3. Configure your shell profile
 
-```
+```sh
 export GOOGLE_CALENDAR_API_CREDS_PATH=/home/$USER/.creds/key.json
 export CALENDAR_ID=primary
 
@@ -30,6 +30,6 @@ ac () {
 
 5. Enjoy (here `foo` is the event title, `08:00` is the start time, then first `/-1` means that event starts yesterday, `09:00` is the end time, then second `/-1` means that event ends yesterday)
 
-```
+```sh
 ac foo 08:00/-1 09:00/-1
 ```
