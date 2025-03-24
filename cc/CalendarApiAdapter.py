@@ -8,7 +8,6 @@ from googleapiclient.discovery import build
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-
 class CalendarApiAdapter:
     def __init__(self, creds_path: str):
         creds = None
@@ -31,33 +30,37 @@ class CalendarApiAdapter:
 
         self.service = build('calendar', 'v3', credentials=creds)
 
-    def add_event(self, title: str, description: str, email: str, name: str, url: str, source: str, start_now: bool = False, end_now: bool = False, date=datetime.now()):
+    def add_event(self, title: str, description: str, email: str, name: str, url: str, source: str, start: datetime = datetime.now, end: datetime = datetime.now):
         event = {
             'summary': title,
             'location': 'Saint-Petersburg, Kronverkskiy Prospekt, 49',
             'description': description,
             'start': {
-                'dateTime': (date if start_now else datetime.combine(date, datetime.min.time())).isoformat(),
+                'dateTime': start.isoformat(),
                 'timeZone': 'Europe/Moscow',
             },
             'end': {
-                'dateTime': (date if end_now else datetime.combine(date, datetime.max.time())).isoformat(),
+                'dateTime': end.isoformat(),
                 'timeZone': 'Europe/Moscow',
-            },
-            'attendees': [
-                {
-                    'email': email,
-                    'responseStatus': 'accepted',
-                    'displayName': name
-                }
-            ],
-            'source': {
-                'url': url,
-                'title': source
             },
             'reminders': {
                 'useDefault': False
             }
         }
+
+        if email is not None or name is not None:
+            event['attendees'] = [
+                {
+                    'email': email,
+                    'responseStatus': 'accepted',
+                    'displayName': name
+                }
+            ]
+
+        if url is not None or source is not None:
+            event['source'] = {
+                'url': url,
+                'title': source
+            }
 
         self.service.events().insert(calendarId=os.environ['CALENDAR_ID'], body=event).execute()
